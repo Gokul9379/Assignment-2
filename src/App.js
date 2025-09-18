@@ -18,6 +18,7 @@ import {
   EditOutlined,
   DeleteOutlined
 } from "@ant-design/icons";
+import Loader from "./components/Loader"; 
 import "./App.css";
 
 const { Meta } = Card;
@@ -27,13 +28,20 @@ export default function App() {
   const [favorites, setFavorites] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [loading, setLoading] = useState(true); 
   const [form] = Form.useForm();
 
   useEffect(() => {
     fetch("https://jsonplaceholder.typicode.com/users")
       .then((res) => res.json())
-      .then((data) => setUsers(data))
-      .catch(() => message.error("Failed to load users"));
+      .then((data) => {
+        setUsers(data);
+        setLoading(false); 
+      })
+      .catch(() => {
+        message.error("Failed to load users");
+        setLoading(false);
+      });
   }, []);
 
   const toggleFavorite = (id) => {
@@ -69,18 +77,22 @@ export default function App() {
     message.info("User deleted");
   };
 
+  if (loading) {
+    return <Loader />;
+  }
+
   return (
     <div className="app-container">
-      <Row gutter={[24, 24]} justify="center">
+      <Row gutter={[24, 24]} justify="start">
         {users.map((user) => {
-          const avatarUrl = `https://avatars.dicebear.com/v2/avataaars/${user.username}.svg?options[mood][]=happy`;
+          const avatarUrl = `https://api.dicebear.com/6.x/avataaars/svg?seed=${user.username}&mood=happy`;
           const isFav = favorites.includes(user.id);
 
           return (
             <Col xs={24} sm={12} md={12} lg={6} key={user.id}>
               <Card
                 style={{
-                  width: "95%", // wider card
+                  width: "95%",
                   margin: "auto",
                   borderRadius: "12px"
                 }}
@@ -131,6 +143,7 @@ export default function App() {
         })}
       </Row>
 
+      {/* Edit Modal */}
       <Modal
         title="Edit User"
         open={isModalVisible}
